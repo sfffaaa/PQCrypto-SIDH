@@ -29,12 +29,11 @@
 // Benchmark and test parameters
 #if defined(OPTIMIZED_GENERIC_IMPLEMENTATION) || (TARGET == TARGET_ARM)
     #define BENCH_LOOPS        5      // Number of iterations per bench
-    #define TEST_LOOPS         3      // Number of iterations per test
+    #define TEST_LOOPS         10      // Number of iterations per test
 #else
     #define BENCH_LOOPS       100
-    #define TEST_LOOPS        3
+    #define TEST_LOOPS        10
 #endif
-#define NTESTS TEST_LOOPS
 
 #define TEST_JSON_PLAINTEXT "{\n" \
 "        body: {\n" \
@@ -146,7 +145,7 @@ int mycryptorun_pke()
     unsigned char* myMsg_ = NULL;
     unsigned char* myCt = NULL;
 
-    unsigned long long tkeygen[NTESTS], tsign[NTESTS], tverify[NTESTS];
+    unsigned long long tkeygen[TEST_LOOPS], tsign[TEST_LOOPS], tverify[TEST_LOOPS];
     timing_overhead = cpucycles_overhead();
 
     if (NULL == (myMsg = (unsigned char*)calloc(myMsgLen, sizeof(unsigned char))) ||
@@ -159,7 +158,7 @@ int mycryptorun_pke()
     printf("\n\nTESTING ISOGENY-BASED PUBLIC KEY ENCRYPTION %s\n", SCHEME_NAME);
     printf("--------------------------------------------------------------------------------------------------------\n\n");
 
-    for (i = 0; i < NTESTS; i++)
+    for (i = 0; i < TEST_LOOPS; i++)
     {
         memset(myMsg, 0, myMsgLen);
         memset(myMsg_, 0, myMsgLen);
@@ -206,9 +205,10 @@ int mycryptorun_pke()
     else { printf("  PKE tests ... FAILED"); printf("\n"); return FAILED; }
     printf("\n");
 
-    print_results("keygen:", tkeygen, NTESTS);
-    print_results("sign: ", tsign, NTESTS);
-    print_results("verify: ", tverify, NTESTS);
+    print_results("keygen:", tkeygen, TEST_LOOPS);
+    print_results("sign: ", tsign, TEST_LOOPS);
+    print_results("verify: ", tverify, TEST_LOOPS);
+	printf("average length: %u\n", myCtLen);
 
     return PASSED;
 }
