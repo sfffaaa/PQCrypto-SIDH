@@ -52,6 +52,8 @@ endif
 AR=ar rcs
 RANLIB=ranlib
 
+TEST_FILES=tests/test_extras.c tests/cpucycles.c tests/speed.c
+
 CFLAGS=$(OPT) $(ADDITIONAL_SETTINGS) -D $(ARCHITECTURE) -D __LINUX__ -D $(USE_OPT_LEVEL) $(MULX) $(ADX)
 LDFLAGS=-lm
 ifeq "$(USE_OPT_LEVEL)" "_GENERIC_"
@@ -141,6 +143,7 @@ tests: lib503 lib751
 	$(CC) $(CFLAGS) -L./lib751 tests/test_SIKEp751.c tests/test_extras.c -lsidh $(LDFLAGS) -o sike751/test_SIKE $(ARM_SETTING)
 	$(CC) $(CFLAGS) -L./lib503 tests/arith_tests-p503.c tests/test_extras.c -lsidh $(LDFLAGS) -o sike503/arith_test $(ARM_SETTING)
 	$(CC) $(CFLAGS) -L./lib751 tests/arith_tests-p751.c tests/test_extras.c -lsidh $(LDFLAGS) -o sike751/arith_test $(ARM_SETTING)
+	$(CC) $(CFLAGS) -Wall -L./lib751 tests/mytest_sike.c $(TEST_FILES) -lsidh $(LDFLAGS) -o sike751/mytest_SIKE $(ARM_SETTING)
 
 # AES
 AES_OBJS=objs/aes.o objs/aes_c.o

@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "cpucycles.h"
 
 #define JAYPAN_DEBUG
 
@@ -48,7 +49,7 @@ int cryptotest_pke()
     printf("\n\nTESTING ISOGENY-BASED PUBLIC KEY ENCRYPTION %s\n", SCHEME_NAME);
     printf("--------------------------------------------------------------------------------------------------------\n\n");
 
-    snprintf(m, CRYPTO_BYTES, "12345");
+    snprintf((char*)m, CRYPTO_BYTES, "12345");
 
     for (i = 0; i < TEST_LOOPS; i++)
     {
@@ -69,6 +70,58 @@ int cryptotest_pke()
     return PASSED;
 }
 
+int cryptorun_pke()
+{ // Benchmarking key exchange
+    unsigned int n;
+    unsigned char sk[CRYPTO_SECRETKEYBYTES] = {0};
+    unsigned char pk[CRYPTO_PUBLICKEYBYTES] = {0};
+    unsigned char ct[CRYPTO_CIPHERTEXTBYTES] = {0};
+    unsigned char m[CRYPTO_BYTES] = {0};
+    unsigned char m_[CRYPTO_BYTES] = {0};
+    unsigned long long cycles, cycles1, cycles2;
+
+    printf("\n\nBENCHMARKING ISOGENY-BASED PUBLIC KEY ENCRYPTION %s\n", SCHEME_NAME);
+    printf("--------------------------------------------------------------------------------------------------------\n\n");
+
+    // Benchmarking key generation
+    cycles = 0;
+    for (n = 0; n < BENCH_LOOPS; n++)
+    {
+        cycles1 = cpucycles();
+        crypto_pke_keypair(pk, sk);
+        cycles2 = cpucycles();
+        cycles = cycles+(cycles2-cycles1);
+    }
+    printf("  Key generation runs in ....................................... %10lld ", cycles/BENCH_LOOPS); print_unit;
+    printf("\n");
+
+    // Benchmarking encapsulation
+    snprintf((char*)m, CRYPTO_BYTES, "12345");
+    cycles = 0;
+    for (n = 0; n < BENCH_LOOPS; n++)
+    {
+        cycles1 = cpucycles();
+        crypto_pke_enc(ct, m, pk);
+        cycles2 = cpucycles();
+        cycles = cycles+(cycles2-cycles1);
+    }
+    printf("  Encapsulation runs in ........................................ %10lld ", cycles/BENCH_LOOPS); print_unit;
+    printf("\n");
+
+    // Benchmarking decapsulation
+    cycles = 0;
+    for (n = 0; n < BENCH_LOOPS; n++)
+    {
+        cycles1 = cpucycles();
+        crypto_pke_dec(m_, ct, sk);
+        cycles2 = cpucycles();
+        cycles = cycles+(cycles2-cycles1);
+    }
+    printf("  Decapsulation runs in ........................................ %10lld ", cycles/BENCH_LOOPS); print_unit;
+    printf("\n");
+
+    return PASSED;
+}
 
 int mycryptotest_pke()
 { // Testing KEM
@@ -148,55 +201,80 @@ int mycryptotest_pke()
     return PASSED;
 }
 
-int cryptorun_pke()
-{ // Benchmarking key exchange
-    unsigned int n;
+int mycryptorun_pke()
+{ // Testing KEM
+    unsigned int i;
     unsigned char sk[CRYPTO_SECRETKEYBYTES] = {0};
     unsigned char pk[CRYPTO_PUBLICKEYBYTES] = {0};
-    unsigned char ct[CRYPTO_CIPHERTEXTBYTES] = {0};
-    unsigned char m[CRYPTO_BYTES] = {0};
-    unsigned char m_[CRYPTO_BYTES] = {0};
-    unsigned long long cycles, cycles1, cycles2;
+    bool passed = true;
 
-    printf("\n\nBENCHMARKING ISOGENY-BASED PUBLIC KEY ENCRYPTION %s\n", SCHEME_NAME);
+    unsigned int encTimes = (strlen(TEST_JSON_PLAINTEXT) + 1) / CRYPTO_BYTES + 1;
+    unsigned int myMsgLen = encTimes * CRYPTO_BYTES;
+    unsigned int myCtLen = encTimes * CRYPTO_CIPHERTEXTBYTES;
+    unsigned int encdecIdx = 0;
+
+    unsigned char* myMsg = NULL;
+    unsigned char* myMsg_ = NULL;
+    unsigned char* myCt = NULL;
+
+    if (NULL == (myMsg = (unsigned char*)calloc(myMsgLen, sizeof(unsigned char))) ||
+        NULL == (myMsg_ = (unsigned char*)calloc(myMsgLen, sizeof(unsigned char))) ||
+        NULL == (myCt = (unsigned char*)calloc(myCtLen, sizeof(unsigned char)))) {
+        printf("Cannot get the memory\n");
+        return FAILED;
+    }
+
+    printf("\n\nTESTING ISOGENY-BASED PUBLIC KEY ENCRYPTION %s\n", SCHEME_NAME);
     printf("--------------------------------------------------------------------------------------------------------\n\n");
 
-    // Benchmarking key generation
-    cycles = 0;
-    for (n = 0; n < BENCH_LOOPS; n++)
+    for (i = 0; i < TEST_LOOPS; i++)
     {
-        cycles1 = cpucycles();
+		memset(myMsg, 0, myMsgLen);
+		memset(myMsg_, 0, myMsgLen);
+		memset(myCt, 0, myCtLen);
+
+	    snprintf((char*)myMsg, myMsgLen, TEST_JSON_PLAINTEXT);
+
+#ifdef JAYPAN_DEBUG
+		printf("start test %d\n", i);
+#endif
         crypto_pke_keypair(pk, sk);
-        cycles2 = cpucycles();
-        cycles = cycles+(cycles2-cycles1);
+#ifdef JAYPAN_DEBUG
+		printf("start encrypt\n");
+#endif
+        for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
+            crypto_pke_enc(myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, myMsg + encdecIdx * CRYPTO_BYTES, pk);
+        }
+#ifdef JAYPAN_DEBUG
+		printf("after encrypt %s\n", (char*)myMsg);
+#endif
+        for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
+            crypto_pke_dec(myMsg_ + encdecIdx * CRYPTO_BYTES, myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, sk);
+        }
+#ifdef JAYPAN_DEBUG
+		printf("after decrypt %s\n", (char*)myMsg_);
+#endif
+
+        if (memcmp(myMsg, myMsg_, myMsgLen) != 0) {
+            passed = false;
+            break;
+        }
     }
-    printf("  Key generation runs in ....................................... %10lld ", cycles/BENCH_LOOPS); print_unit;
+
+    if (myMsg) {
+        free(myMsg);
+    }
+    if (myMsg_) {
+        free(myMsg_);
+    }
+    if (myCt) {
+        free(myCt);
+    }
+
+    if (passed == true) printf("  PKE tests .................................................... PASSED");
+    else { printf("  PKE tests ... FAILED"); printf("\n"); return FAILED; }
     printf("\n");
 
-    // Benchmarking encapsulation
-    snprintf(m, CRYPTO_BYTES, "12345");
-    cycles = 0;
-    for (n = 0; n < BENCH_LOOPS; n++)
-    {
-        cycles1 = cpucycles();
-        crypto_pke_enc(ct, m, pk);
-        cycles2 = cpucycles();
-        cycles = cycles+(cycles2-cycles1);
-    }
-    printf("  Encapsulation runs in ........................................ %10lld ", cycles/BENCH_LOOPS); print_unit;
-    printf("\n");
-
-    // Benchmarking decapsulation
-    cycles = 0;
-    for (n = 0; n < BENCH_LOOPS; n++)
-    {
-        cycles1 = cpucycles();
-        crypto_pke_dec(m_, ct, sk);
-        cycles2 = cpucycles();
-        cycles = cycles+(cycles2-cycles1);
-    }
-    printf("  Decapsulation runs in ........................................ %10lld ", cycles/BENCH_LOOPS); print_unit;
-    printf("\n");
 
     return PASSED;
 }
