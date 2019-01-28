@@ -24,6 +24,18 @@
 //          public key pk (CRYPTO_PUBLICKEYBYTES = 564 bytes) 
 int crypto_kem_keypair_SIKEp751(unsigned char *pk, unsigned char *sk);
 
+// SIKE's encryption
+// Input:   public key pk         (CRYPTO_PUBLICKEYBYTES = 564 bytes)
+//          message m             (CRYPTO_BYTES = 24 bytes)
+// Outputs: ciphertext message ct (CRYPTO_CIPHERTEXTBYTES = 596 bytes) 
+int crypto_pke_enc_SIKEp751(unsigned char *ct, const unsigned char* m, const unsigned char *pk);
+
+// SIKE's decryption
+// Input:   secret key sk         (CRYPTO_SECRETKEYBYTES = 644 bytes)
+//          ciphertext message ct (CRYPTO_CIPHERTEXTBYTES = 596 bytes) 
+// Outputs: message m             (CRYPTO_BYTES = 24 bytes)
+int crypto_pke_dec_SIKEp751(unsigned char *m, const unsigned char *ct, const unsigned char *sk);
+
 // SIKE's encapsulation
 // Input:   public key pk         (CRYPTO_PUBLICKEYBYTES = 564 bytes)
 // Outputs: shared secret ss      (CRYPTO_BYTES = 24 bytes)

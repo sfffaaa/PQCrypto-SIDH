@@ -13,7 +13,7 @@
 #define CRYPTO_SECRETKEYBYTES     434    // MSG_BYTES + SECRETKEY_B_BYTES + CRYPTO_PUBLICKEYBYTES bytes
 #define CRYPTO_PUBLICKEYBYTES     378
 #define CRYPTO_BYTES               16
-#define CRYPTO_CIPHERTEXTBYTES    402    // CRYPTO_PUBLICKEYBYTES + MSG_BYTES bytes  
+#define CRYPTO_CIPHERTEXTBYTES    402    // CRYPTO_PUBLICKEYBYTES + MSG_BYTES bytes
 
 // Algorithm name
 #define CRYPTO_ALGNAME "SIKEp503"  
@@ -23,6 +23,18 @@
 // Outputs: secret key sk (CRYPTO_SECRETKEYBYTES = 434 bytes)
 //          public key pk (CRYPTO_PUBLICKEYBYTES = 378 bytes) 
 int crypto_kem_keypair_SIKEp503(unsigned char *pk, unsigned char *sk);
+
+// SIKE's encryption
+// Input:   public key pk         (CRYPTO_PUBLICKEYBYTES = 378 bytes)
+//          message m             (CRYPTO_BYTES = 24 bytes)
+// Outputs: ciphertext message ct (CRYPTO_CIPHERTEXTBYTES = 402 bytes) 
+int crypto_pke_enc_SIKEp503(unsigned char *ct, const unsigned char* m, const unsigned char *pk);
+
+// SIKE's decryption
+// Input:   secret key sk         (CRYPTO_SECRETKEYBYTES = 434 bytes)
+//          ciphertext message ct (CRYPTO_CIPHERTEXTBYTES = 402 bytes) 
+// Outputs: message m             (CRYPTO_BYTES = 24 bytes)
+int crypto_pke_dec_SIKEp503(unsigned char *m, const unsigned char *ct, const unsigned char *sk);
 
 // SIKE's encapsulation
 // Input:   public key pk         (CRYPTO_PUBLICKEYBYTES = 378 bytes)

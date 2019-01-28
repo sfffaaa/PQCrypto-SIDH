@@ -2,18 +2,54 @@
 * SIDH: an efficient supersingular isogeny cryptography library
 *
 * Abstract: benchmarking/testing isogeny-based key encapsulation mechanism
-*********************************************************************************************/ 
+*********************************************************************************************/
 
 
-// Benchmark and test parameters  
-#if defined(OPTIMIZED_GENERIC_IMPLEMENTATION) || (TARGET == TARGET_ARM) 
-    #define BENCH_LOOPS        5      // Number of iterations per bench 
+// Benchmark and test parameters
+#if defined(OPTIMIZED_GENERIC_IMPLEMENTATION) || (TARGET == TARGET_ARM)
+    #define BENCH_LOOPS        5      // Number of iterations per bench
     #define TEST_LOOPS         5      // Number of iterations per test
 #else
-    #define BENCH_LOOPS       100       
-    #define TEST_LOOPS        10      
+    #define BENCH_LOOPS       100
+    #define TEST_LOOPS        10
 #endif
 
+
+int cryptotest_pke()
+{ // Testing KEM
+    unsigned int i;
+    unsigned char sk[CRYPTO_SECRETKEYBYTES] = {0};
+    unsigned char pk[CRYPTO_PUBLICKEYBYTES] = {0};
+    unsigned char ct[CRYPTO_CIPHERTEXTBYTES] = {0};
+    unsigned char m[CRYPTO_BYTES] = {0};
+    unsigned char m_[CRYPTO_BYTES] = {0};
+    bool passed = true;
+
+    printf("\n\nTESTING ISOGENY-BASED PUBLIC KEY ENCRYPTION %s\n", SCHEME_NAME);
+    printf("--------------------------------------------------------------------------------------------------------\n\n");
+
+    snprintf(m, CRYPTO_BYTES, "12345");
+
+    for (i = 0; i < TEST_LOOPS; i++)
+    {
+        crypto_kem_keypair(pk, sk);
+        crypto_pke_enc(ct, m, pk);
+        crypto_pke_dec(m_, ct, sk);
+
+        printf("m: %s\n", m);
+        printf("m_: %s\n", m_);
+        if (memcmp(m, m_, CRYPTO_BYTES) != 0) {
+            passed = false;
+            break;
+        }
+    }
+
+    if (passed == true) printf("  PKE tests .................................................... PASSED");
+    else { printf("  PKE tests ... FAILED"); printf("\n"); return FAILED; }
+    printf("\n");
+
+    return PASSED;
+}
 
 int cryptotest_kem()
 { // Testing KEM
@@ -28,12 +64,12 @@ int cryptotest_kem()
     printf("\n\nTESTING ISOGENY-BASED KEY ENCAPSULATION MECHANISM %s\n", SCHEME_NAME);
     printf("--------------------------------------------------------------------------------------------------------\n\n");
 
-    for (i = 0; i < TEST_LOOPS; i++) 
+    for (i = 0; i < TEST_LOOPS; i++)
     {
         crypto_kem_keypair(pk, sk);
         crypto_kem_enc(ct, ss, pk);
         crypto_kem_dec(ss_, ct, sk);
-        
+
         if (memcmp(ss, ss_, CRYPTO_BYTES) != 0) {
             passed = false;
             break;
@@ -42,7 +78,7 @@ int cryptotest_kem()
 
     if (passed == true) printf("  KEM tests .................................................... PASSED");
     else { printf("  KEM tests ... FAILED"); printf("\n"); return FAILED; }
-    printf("\n"); 
+    printf("\n");
 
     return PASSED;
 }
@@ -90,7 +126,7 @@ int cryptorun_kem()
     for (n = 0; n < BENCH_LOOPS; n++)
     {
         cycles1 = cpucycles();
-        crypto_kem_dec(ss_, ct, sk);   
+        crypto_kem_dec(ss_, ct, sk);
         cycles2 = cpucycles();
         cycles = cycles+(cycles2-cycles1);
     }
@@ -104,18 +140,24 @@ int cryptorun_kem()
 int main()
 {
     int Status = PASSED;
-    
-    Status = cryptotest_kem();             // Test key encapsulation mechanism
+
+    Status = cryptotest_pke();             // Test public key encryption
     if (Status != PASSED) {
-        printf("\n\n   Error detected: KEM_ERROR_SHARED_KEY \n\n");
+        printf("\n\n   Error detected: KEM_ERROR_PKE \n\n");
         return FAILED;
     }
 
-    Status = cryptorun_kem();              // Benchmark key encapsulation mechanism
-    if (Status != PASSED) {
-        printf("\n\n   Error detected: KEM_ERROR_SHARED_KEY \n\n");
-        return FAILED;
-    }
+/*     Status = cryptotest_kem();             // Test key encapsulation mechanism */
+    /* if (Status != PASSED) { */
+        /* printf("\n\n   Error detected: KEM_ERROR_SHARED_KEY \n\n"); */
+        /* return FAILED; */
+    /* } */
+
+    /* Status = cryptorun_kem();              // Benchmark key encapsulation mechanism */
+    /* if (Status != PASSED) { */
+        /* printf("\n\n   Error detected: KEM_ERROR_SHARED_KEY \n\n"); */
+        /* return FAILED; */
+    /* } */
 
     return Status;
 }
