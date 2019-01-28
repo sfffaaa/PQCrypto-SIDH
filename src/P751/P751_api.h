@@ -23,6 +23,11 @@
 // Outputs: secret key sk (CRYPTO_SECRETKEYBYTES = 644 bytes)
 //          public key pk (CRYPTO_PUBLICKEYBYTES = 564 bytes) 
 int crypto_kem_keypair_SIKEp751(unsigned char *pk, unsigned char *sk);
+// SIKE's key generation
+// It produces a private key sk and computes the public key pk.
+// Outputs: secret key sk (SECRETKEY_B_BYTES = ??? bytes)
+//          public key pk (CRYPTO_PUBLICKEYBYTES = 564 bytes) 
+int crypto_pke_keypair_SIKEp751(unsigned char *pk, unsigned char *sk);
 
 // SIKE's encryption
 // Input:   public key pk         (CRYPTO_PUBLICKEYBYTES = 564 bytes)

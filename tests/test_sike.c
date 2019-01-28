@@ -32,7 +32,7 @@ int cryptotest_pke()
 
     for (i = 0; i < TEST_LOOPS; i++)
     {
-        crypto_kem_keypair(pk, sk);
+        crypto_pke_keypair(pk, sk);
         crypto_pke_enc(ct, m, pk);
         crypto_pke_dec(m_, ct, sk);
 
@@ -67,7 +67,7 @@ int cryptorun_pke()
     for (n = 0; n < BENCH_LOOPS; n++)
     {
         cycles1 = cpucycles();
-        crypto_kem_keypair(pk, sk);
+        crypto_pke_keypair(pk, sk);
         cycles2 = cpucycles();
         cycles = cycles+(cycles2-cycles1);
     }

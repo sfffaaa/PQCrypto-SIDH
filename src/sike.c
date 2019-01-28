@@ -7,16 +7,17 @@
 #include <string.h>
 #include "sha3/fips202.h"
 
-/* int crypto_pke_keypair(unsigned char *pk, unsigned char *sk) */
-/* { // SIKE's pke key generation */
-  /* // Outputs: secret key sk (SECRETKEY_B_BYTES) */
-  /* //          public key pk (CRYPTO_PUBLICKEYBYTES bytes) */
+int crypto_pke_keypair(unsigned char *pk, unsigned char *sk)
+{ // SIKE's pke key generation
+  // Outputs: secret key sk (SECRETKEY_B_BYTES)
+  //          public key pk (CRYPTO_PUBLICKEYBYTES bytes)
 
-    /* // Generate public key pk */
-    /* EphemeralKeyGeneration_B(sk, pk); */
+	// Generate public key pk
+    randombytes(sk, MSG_BYTES);
+	EphemeralKeyGeneration_B(sk, pk);
 
-    /* return 0; */
-/* } */
+	return 0;
+}
 
 int crypto_pke_enc(unsigned char *ct, const unsigned char* m, const unsigned char *pk)
 { // SIKE's encryption
@@ -42,7 +43,7 @@ int crypto_pke_enc(unsigned char *ct, const unsigned char* m, const unsigned cha
 // maximum of m is 320 bits only, see 1.4 of [SIKE]
 int crypto_pke_dec(unsigned char *m, const unsigned char *ct, const unsigned char *sk)
 { // SIKE's decryption
-  // Input:   secret key sk         (CRYPTO_SECRETKEYBYTES = MSG_BYTES + SECRETKEY_B_BYTES + CRYPTO_PUBLICKEYBYTES bytes)
+  // Input:   secret key sk         (SECRETKEY_B_BYTES)
   //          ciphertext message ct (CRYPTO_CIPHERTEXTBYTES = CRYPTO_PUBLICKEYBYTES + MSG_BYTES bytes)
   // Outputs: message m              (CRYPTO_BYTES bytes)
     const uint16_t P = 2;
@@ -50,7 +51,7 @@ int crypto_pke_dec(unsigned char *m, const unsigned char *ct, const unsigned cha
     unsigned char h_[MSG_BYTES];
     unsigned int i;
 
-    EphemeralSecretAgreement_B(sk + MSG_BYTES, ct, j); // j setting
+    EphemeralSecretAgreement_B(sk, ct, j); // j setting
     cshake256_simple(h_, MSG_BYTES, P, j, FP2_ENCODED_BYTES); // h setting
     for (i = 0; i < MSG_BYTES; i++) m[i] = ct[i + CRYPTO_PUBLICKEYBYTES] ^ h_[i];
     return 0;
