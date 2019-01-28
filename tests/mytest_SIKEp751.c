@@ -9,8 +9,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "cpucycles.h"
-#include "speed.h"
+#include "mytest/cpucycles.h"
+#include "mytest/speed.h"
 #include "test_extras.h"
 #include "../src/P751/P751_api.h"
 
