@@ -36,8 +36,6 @@ int cryptotest_pke()
         crypto_pke_enc(ct, m, pk);
         crypto_pke_dec(m_, ct, sk);
 
-        printf("m: %s\n", m);
-        printf("m_: %s\n", m_);
         if (memcmp(m, m_, CRYPTO_BYTES) != 0) {
             passed = false;
             break;
@@ -50,6 +48,60 @@ int cryptotest_pke()
 
     return PASSED;
 }
+
+int cryptorun_pke()
+{ // Benchmarking key exchange
+    unsigned int n;
+    unsigned char sk[CRYPTO_SECRETKEYBYTES] = {0};
+    unsigned char pk[CRYPTO_PUBLICKEYBYTES] = {0};
+    unsigned char ct[CRYPTO_CIPHERTEXTBYTES] = {0};
+    unsigned char m[CRYPTO_BYTES] = {0};
+    unsigned char m_[CRYPTO_BYTES] = {0};
+    unsigned long long cycles, cycles1, cycles2;
+
+    printf("\n\nBENCHMARKING ISOGENY-BASED PUBLIC KEY ENCRYPTION %s\n", SCHEME_NAME);
+    printf("--------------------------------------------------------------------------------------------------------\n\n");
+
+    // Benchmarking key generation
+    cycles = 0;
+    for (n = 0; n < BENCH_LOOPS; n++)
+    {
+        cycles1 = cpucycles();
+        crypto_kem_keypair(pk, sk);
+        cycles2 = cpucycles();
+        cycles = cycles+(cycles2-cycles1);
+    }
+    printf("  Key generation runs in ....................................... %10lld ", cycles/BENCH_LOOPS); print_unit;
+    printf("\n");
+
+    // Benchmarking encapsulation
+    snprintf(m, CRYPTO_BYTES, "12345");
+    cycles = 0;
+    for (n = 0; n < BENCH_LOOPS; n++)
+    {
+        cycles1 = cpucycles();
+        crypto_pke_enc(ct, m, pk);
+        cycles2 = cpucycles();
+        cycles = cycles+(cycles2-cycles1);
+    }
+    printf("  Encapsulation runs in ........................................ %10lld ", cycles/BENCH_LOOPS); print_unit;
+    printf("\n");
+
+    // Benchmarking decapsulation
+    cycles = 0;
+    for (n = 0; n < BENCH_LOOPS; n++)
+    {
+        cycles1 = cpucycles();
+        crypto_pke_dec(m_, ct, sk);
+        cycles2 = cpucycles();
+        cycles = cycles+(cycles2-cycles1);
+    }
+    printf("  Decapsulation runs in ........................................ %10lld ", cycles/BENCH_LOOPS); print_unit;
+    printf("\n");
+
+    return PASSED;
+}
+
 
 int cryptotest_kem()
 { // Testing KEM
@@ -146,6 +198,12 @@ int main()
         printf("\n\n   Error detected: KEM_ERROR_PKE \n\n");
         return FAILED;
     }
+
+	Status = cryptorun_pke();             // Benchmark public key encryption
+	if (Status != PASSED) {
+		printf("\n\n   Error detected: KEM_ERROR_PKE \n\n");
+		return FAILED;
+	}
 
 /*     Status = cryptotest_kem();             // Test key encapsulation mechanism */
     /* if (Status != PASSED) { */
