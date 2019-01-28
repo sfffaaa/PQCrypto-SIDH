@@ -155,7 +155,6 @@ int mycryptorun_pke()
         printf("Cannot get the memory\n");
         return FAILED;
     }
-    printf("test for\n");
 
     printf("\n\nTESTING ISOGENY-BASED PUBLIC KEY ENCRYPTION %s\n", SCHEME_NAME);
     printf("--------------------------------------------------------------------------------------------------------\n\n");
