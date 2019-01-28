@@ -80,30 +80,30 @@ int mycryptotest_pke()
 
     for (i = 0; i < TEST_LOOPS; i++)
     {
-		memset(myMsg, 0, myMsgLen);
-		memset(myMsg_, 0, myMsgLen);
-		memset(myCt, 0, myCtLen);
+        memset(myMsg, 0, myMsgLen);
+        memset(myMsg_, 0, myMsgLen);
+        memset(myCt, 0, myCtLen);
 
-	    snprintf((char*)myMsg, myMsgLen, TEST_JSON_PLAINTEXT);
+        snprintf((char*)myMsg, myMsgLen, TEST_JSON_PLAINTEXT);
 
 #ifdef JAYPAN_DEBUG
-		printf("start test %d\n", i);
+        printf("start test %d\n", i);
 #endif
         crypto_pke_keypair(pk, sk);
 #ifdef JAYPAN_DEBUG
-		printf("start encrypt\n");
+        printf("start encrypt\n");
 #endif
         for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
             crypto_pke_enc(myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, myMsg + encdecIdx * CRYPTO_BYTES, pk);
         }
 #ifdef JAYPAN_DEBUG
-		printf("after encrypt %s\n", (char*)myMsg);
+        printf("after encrypt %s\n", (char*)myMsg);
 #endif
         for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
             crypto_pke_dec(myMsg_ + encdecIdx * CRYPTO_BYTES, myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, sk);
         }
 #ifdef JAYPAN_DEBUG
-		printf("after decrypt %s\n", (char*)myMsg_);
+        printf("after decrypt %s\n", (char*)myMsg_);
 #endif
 
         if (memcmp(myMsg, myMsg_, myMsgLen) != 0) {
@@ -132,97 +132,97 @@ int mycryptotest_pke()
 
 int mycryptorun_pke()
 { // Testing KEM
-	unsigned int i;
-	unsigned char sk[CRYPTO_SECRETKEYBYTES] = {0};
-	unsigned char pk[CRYPTO_PUBLICKEYBYTES] = {0};
-	bool passed = true;
+    unsigned int i;
+    unsigned char sk[CRYPTO_SECRETKEYBYTES] = {0};
+    unsigned char pk[CRYPTO_PUBLICKEYBYTES] = {0};
+    bool passed = true;
 
-	unsigned int encTimes = (strlen(TEST_JSON_PLAINTEXT) + 1) / CRYPTO_BYTES + 1;
-	unsigned int myMsgLen = encTimes * CRYPTO_BYTES;
-	unsigned int myCtLen = encTimes * CRYPTO_CIPHERTEXTBYTES;
-	unsigned int encdecIdx = 0;
+    unsigned int encTimes = (strlen(TEST_JSON_PLAINTEXT) + 1) / CRYPTO_BYTES + 1;
+    unsigned int myMsgLen = encTimes * CRYPTO_BYTES;
+    unsigned int myCtLen = encTimes * CRYPTO_CIPHERTEXTBYTES;
+    unsigned int encdecIdx = 0;
 
-	unsigned char* myMsg = NULL;
-	unsigned char* myMsg_ = NULL;
-	unsigned char* myCt = NULL;
+    unsigned char* myMsg = NULL;
+    unsigned char* myMsg_ = NULL;
+    unsigned char* myCt = NULL;
 
-	unsigned long long tkeygen[NTESTS], tsign[NTESTS], tverify[NTESTS];
-	timing_overhead = cpucycles_overhead();
+    unsigned long long tkeygen[NTESTS], tsign[NTESTS], tverify[NTESTS];
+    timing_overhead = cpucycles_overhead();
 
-	if (NULL == (myMsg = (unsigned char*)calloc(myMsgLen, sizeof(unsigned char))) ||
-		NULL == (myMsg_ = (unsigned char*)calloc(myMsgLen, sizeof(unsigned char))) ||
-		NULL == (myCt = (unsigned char*)calloc(myCtLen, sizeof(unsigned char)))) {
-		printf("Cannot get the memory\n");
-		return FAILED;
-	}
-	printf("test for\n");
+    if (NULL == (myMsg = (unsigned char*)calloc(myMsgLen, sizeof(unsigned char))) ||
+        NULL == (myMsg_ = (unsigned char*)calloc(myMsgLen, sizeof(unsigned char))) ||
+        NULL == (myCt = (unsigned char*)calloc(myCtLen, sizeof(unsigned char)))) {
+        printf("Cannot get the memory\n");
+        return FAILED;
+    }
+    printf("test for\n");
 
-	printf("\n\nTESTING ISOGENY-BASED PUBLIC KEY ENCRYPTION %s\n", SCHEME_NAME);
-	printf("--------------------------------------------------------------------------------------------------------\n\n");
+    printf("\n\nTESTING ISOGENY-BASED PUBLIC KEY ENCRYPTION %s\n", SCHEME_NAME);
+    printf("--------------------------------------------------------------------------------------------------------\n\n");
 
-	for (i = 0; i < NTESTS; i++)
-	{
-		memset(myMsg, 0, myMsgLen);
-		memset(myMsg_, 0, myMsgLen);
-		memset(myCt, 0, myCtLen);
+    for (i = 0; i < NTESTS; i++)
+    {
+        memset(myMsg, 0, myMsgLen);
+        memset(myMsg_, 0, myMsgLen);
+        memset(myCt, 0, myCtLen);
 
-		snprintf((char*)myMsg, myMsgLen, TEST_JSON_PLAINTEXT);
+        snprintf((char*)myMsg, myMsgLen, TEST_JSON_PLAINTEXT);
 
-		printf("start genkey\n");
-		tkeygen[i] = cpucycles_start();
-		crypto_pke_keypair(pk, sk);
-		tkeygen[i] = cpucycles_stop() - tkeygen[i] - timing_overhead;
+        printf("start genkey\n");
+        tkeygen[i] = cpucycles_start();
+        crypto_pke_keypair(pk, sk);
+        tkeygen[i] = cpucycles_stop() - tkeygen[i] - timing_overhead;
 
-		printf("start encrypt\n");
-		tsign[i] = cpucycles_start();
-		for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
-			crypto_pke_enc(myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, myMsg + encdecIdx * CRYPTO_BYTES, pk);
-		}
-		tsign[i] = cpucycles_stop() - tsign[i] - timing_overhead;
+        printf("start encrypt\n");
+        tsign[i] = cpucycles_start();
+        for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
+            crypto_pke_enc(myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, myMsg + encdecIdx * CRYPTO_BYTES, pk);
+        }
+        tsign[i] = cpucycles_stop() - tsign[i] - timing_overhead;
 
-		printf("start decrypt\n");
-		tverify[i] = cpucycles_start();
-		for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
-			crypto_pke_dec(myMsg_ + encdecIdx * CRYPTO_BYTES, myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, sk);
-		}
-		tverify[i] = cpucycles_stop() - tverify[i] - timing_overhead;
+        printf("start decrypt\n");
+        tverify[i] = cpucycles_start();
+        for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
+            crypto_pke_dec(myMsg_ + encdecIdx * CRYPTO_BYTES, myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, sk);
+        }
+        tverify[i] = cpucycles_stop() - tverify[i] - timing_overhead;
 
-		if (memcmp(myMsg, myMsg_, myMsgLen) != 0) {
-			passed = false;
-			break;
-		}
-	}
+        if (memcmp(myMsg, myMsg_, myMsgLen) != 0) {
+            passed = false;
+            break;
+        }
+    }
 
-	if (myMsg) {
-		free(myMsg);
-	}
-	if (myMsg_) {
-		free(myMsg_);
-	}
-	if (myCt) {
-		free(myCt);
-	}
+    if (myMsg) {
+        free(myMsg);
+    }
+    if (myMsg_) {
+        free(myMsg_);
+    }
+    if (myCt) {
+        free(myCt);
+    }
 
-	if (passed == true) printf("  PKE tests .................................................... PASSED");
-	else { printf("  PKE tests ... FAILED"); printf("\n"); return FAILED; }
-	printf("\n");
+    if (passed == true) printf("  PKE tests .................................................... PASSED");
+    else { printf("  PKE tests ... FAILED"); printf("\n"); return FAILED; }
+    printf("\n");
 
-	print_results("keygen:", tkeygen, NTESTS);
-	print_results("sign: ", tsign, NTESTS);
-	print_results("verify: ", tverify, NTESTS);
+    print_results("keygen:", tkeygen, NTESTS);
+    print_results("sign: ", tsign, NTESTS);
+    print_results("verify: ", tverify, NTESTS);
 
-	return PASSED;
+    return PASSED;
 }
 
 int main()
 {
     int Status = PASSED;
 
-    /* Status = mycryptotest_pke();             // Test public key encryption */
-    /* if (Status != PASSED) { */
-        /* printf("\n\n   Error detected: KEM_ERROR_PKE \n\n"); */
-        /* return FAILED; */
-    /* } */
+    Status = mycryptotest_pke();             // Test public key encryption
+    if (Status != PASSED) {
+        printf("\n\n   Error detected: KEM_ERROR_PKE \n\n");
+        return FAILED;
+    }
 
     Status = mycryptorun_pke();             // Test public key encryption
     if (Status != PASSED) {
