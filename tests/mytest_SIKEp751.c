@@ -34,10 +34,10 @@
 // Benchmark and test parameters
 #if defined(OPTIMIZED_GENERIC_IMPLEMENTATION) || (TARGET == TARGET_ARM)
     #define BENCH_LOOPS        5      // Number of iterations per bench
-    #define TEST_LOOPS         10      // Number of iterations per test
+    #define TEST_LOOPS         50      // Number of iterations per test
 #else
     #define BENCH_LOOPS       100
-    #define TEST_LOOPS        10
+    #define TEST_LOOPS        50
 #endif
 
 #define TEST_JSON_PLAINTEXT "{\n" \
