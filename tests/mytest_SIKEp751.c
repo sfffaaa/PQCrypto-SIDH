@@ -23,6 +23,11 @@
 #define crypto_kem_enc                crypto_kem_enc_SIKEp751
 #define crypto_kem_dec                crypto_kem_dec_SIKEp751
 
+#define MYCRYPTO_SK_LENGTH CRYPTO_SECRETKEYBYTES
+#define MYCRYPTO_PK_LENGTH CRYPTO_PUBLICKEYBYTES
+#define MYCRYPTO_MSG_LENGTH CRYPTO_BYTES
+#define MYCRYPTO_CIPHER_MSG_LENGTH CRYPTO_CIPHERTEXTBYTES
+
 
 #define JAYPAN_DEBUG
 
@@ -54,13 +59,13 @@ unsigned long long timing_overhead;
 int mycryptotest_pke()
 { // Testing KEM
     unsigned int i;
-    unsigned char sk[CRYPTO_SECRETKEYBYTES] = {0};
-    unsigned char pk[CRYPTO_PUBLICKEYBYTES] = {0};
+    unsigned char sk[MYCRYPTO_SK_LENGTH] = {0};
+    unsigned char pk[MYCRYPTO_PK_LENGTH] = {0};
     bool passed = true;
 
-    unsigned int encTimes = (strlen(TEST_JSON_PLAINTEXT) + 1) / CRYPTO_BYTES + 1;
-    unsigned int myMsgLen = encTimes * CRYPTO_BYTES;
-    unsigned int myCtLen = encTimes * CRYPTO_CIPHERTEXTBYTES;
+    unsigned int encTimes = (strlen(TEST_JSON_PLAINTEXT) + 1) / MYCRYPTO_MSG_LENGTH + 1;
+    unsigned int myMsgLen = encTimes * MYCRYPTO_MSG_LENGTH;
+    unsigned int myCtLen = encTimes * MYCRYPTO_CIPHER_MSG_LENGTH;
     unsigned int encdecIdx = 0;
 
     unsigned char* myMsg = NULL;
@@ -93,13 +98,13 @@ int mycryptotest_pke()
         printf("start encrypt\n");
 #endif
         for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
-            crypto_pke_enc(myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, myMsg + encdecIdx * CRYPTO_BYTES, pk);
+            crypto_pke_enc(myCt + encdecIdx * MYCRYPTO_CIPHER_MSG_LENGTH, myMsg + encdecIdx * MYCRYPTO_MSG_LENGTH, pk);
         }
 #ifdef JAYPAN_DEBUG
         printf("after encrypt %s\n", (char*)myMsg);
 #endif
         for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
-            crypto_pke_dec(myMsg_ + encdecIdx * CRYPTO_BYTES, myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, sk);
+            crypto_pke_dec(myMsg_ + encdecIdx * MYCRYPTO_MSG_LENGTH, myCt + encdecIdx * MYCRYPTO_CIPHER_MSG_LENGTH, sk);
         }
 #ifdef JAYPAN_DEBUG
         printf("after decrypt %s\n", (char*)myMsg_);
@@ -132,13 +137,13 @@ int mycryptotest_pke()
 int mycryptorun_pke()
 { // Testing KEM
     unsigned int i;
-    unsigned char sk[CRYPTO_SECRETKEYBYTES] = {0};
-    unsigned char pk[CRYPTO_PUBLICKEYBYTES] = {0};
+    unsigned char sk[MYCRYPTO_SK_LENGTH] = {0};
+    unsigned char pk[MYCRYPTO_PK_LENGTH] = {0};
     bool passed = true;
 
-    unsigned int encTimes = (strlen(TEST_JSON_PLAINTEXT) + 1) / CRYPTO_BYTES + 1;
-    unsigned int myMsgLen = encTimes * CRYPTO_BYTES;
-    unsigned int myCtLen = encTimes * CRYPTO_CIPHERTEXTBYTES;
+    unsigned int encTimes = (strlen(TEST_JSON_PLAINTEXT) + 1) / MYCRYPTO_MSG_LENGTH + 1;
+    unsigned int myMsgLen = encTimes * MYCRYPTO_MSG_LENGTH;
+    unsigned int myCtLen = encTimes * MYCRYPTO_CIPHER_MSG_LENGTH;
     unsigned int encdecIdx = 0;
 
     unsigned char* myMsg = NULL;
@@ -174,14 +179,14 @@ int mycryptorun_pke()
         printf("start encrypt\n");
         tsign[i] = cpucycles_start();
         for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
-            crypto_pke_enc(myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, myMsg + encdecIdx * CRYPTO_BYTES, pk);
+            crypto_pke_enc(myCt + encdecIdx * MYCRYPTO_CIPHER_MSG_LENGTH, myMsg + encdecIdx * MYCRYPTO_MSG_LENGTH, pk);
         }
         tsign[i] = cpucycles_stop() - tsign[i] - timing_overhead;
 
         printf("start decrypt\n");
         tverify[i] = cpucycles_start();
         for (encdecIdx = 0; encdecIdx < encTimes; encdecIdx++) {
-            crypto_pke_dec(myMsg_ + encdecIdx * CRYPTO_BYTES, myCt + encdecIdx * CRYPTO_CIPHERTEXTBYTES, sk);
+            crypto_pke_dec(myMsg_ + encdecIdx * MYCRYPTO_MSG_LENGTH, myCt + encdecIdx * MYCRYPTO_CIPHER_MSG_LENGTH, sk);
         }
         tverify[i] = cpucycles_stop() - tverify[i] - timing_overhead;
 
