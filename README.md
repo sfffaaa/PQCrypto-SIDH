@@ -1,10 +1,10 @@
 # SIDH v3.0 (C Edition)
 
-**Jay**:
+## Jay
 The mechanism of PKE and test cases for SIKE are implemented by following spec "https://www.cs.ru.nl/~jrenes/publications/sike.pdf".
 The test for measuring the time of key generation/the time of encrypting json plaintext/the time of decrypting the json plaintext/length of cipher message is added, too.
 
-
+## Original
 The **SIDH** library is an efficient supersingular isogeny-based cryptography library written in C language.
 **Version v3.0** of the library includes the ephemeral Diffie-Hellman key exchange scheme "SIDH" [1,2], and the CCA-secure
 key encapsulation mechanism "SIKE" [4]. These schemes are conjectured to be secure against quantum computer attacks.
